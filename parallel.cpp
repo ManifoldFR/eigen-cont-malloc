@@ -58,6 +58,8 @@ void BM_tbb(benchmark::State &state) {
   for (auto _ : state) {
     tbb::parallel_for(0U, N, [&](uint t) { run_task(data[t]); });
   }
+
+  Eigen::setNbThreads(0);
 }
 
 void CustomArgs(benchmark::internal::Benchmark *bench) {
