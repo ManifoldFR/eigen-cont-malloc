@@ -11,4 +11,3 @@ find_package(benchmark REQUIRED)
 add_executable(main main.cpp)
 target_link_libraries(main PRIVATE Eigen3::Eigen)
 target_link_libraries(main PRIVATE benchmark::benchmark)
-
