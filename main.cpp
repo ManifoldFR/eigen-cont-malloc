@@ -1,31 +1,11 @@
 /// Compare malloc'ing Eigen::Matrix objects contigously in a struct
 /// to malloc'ing a buffer and pointing Eigen::Map objects to it
-#include <Eigen/Core>
 #include <benchmark/benchmark.h>
 #include <iostream>
-#include <memory>
-
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-using std::unique_ptr;
+#include "data.h"
 
 using MatrixMap = Eigen::Map<MatrixXd>;
 using VectorMap = Eigen::Map<VectorXd>;
-
-struct Data {
-  MatrixXd A, B;
-  VectorXd b;
-  VectorXd c;
-};
-
-auto createData(long na, long nb, long nc) {
-  Data out{{na, nb}, {nb, nc}, VectorXd(nb), VectorXd(nc)};
-  out.A.setZero();
-  out.B.setZero();
-  out.b.setZero();
-  out.c.setZero();
-  return out;
-}
 
 struct ContData {
   MatrixMap A, B;
