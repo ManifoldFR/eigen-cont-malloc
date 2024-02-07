@@ -4,8 +4,8 @@
 #include <iostream>
 #include "data.h"
 
-using MatrixMap = Eigen::Map<MatrixXd>;
-using VectorMap = Eigen::Map<VectorXd>;
+using MatrixMap = Eigen::Map<MatrixX>;
+using VectorMap = Eigen::Map<VectorX>;
 
 struct ContData {
   MatrixMap A, B;
@@ -45,8 +45,8 @@ static void BM_noncont(benchmark::State &state) {
   long na = (long)state.range(0);
   long nb = na * 2;
   long nc = (long)state.range(1);
-  VectorXd a(na);
-  Data d = createData(na, nb, nc);
+  VectorX a(na);
+  Data d(na, nb, nc);
 
   for (auto _ : state) {
     d.b.noalias() = d.B * d.c;
@@ -60,7 +60,7 @@ static void BM_cont(benchmark::State &state) {
   long na = (long)state.range(0);
   long nb = na * 2;
   long nc = (long)state.range(1);
-  VectorXd a(na);
+  VectorX a(na);
   ContData d = createContData(na, nb, nc);
 
   for (auto _ : state) {
@@ -87,7 +87,7 @@ void compare_distances() {
   auto cd = createContData(100, 100, 40);
   memberDist(cd);
 
-  auto d = createData(100, 100, 40);
+  Data d(100, 100, 40);
   memberDist(d);
 }
 

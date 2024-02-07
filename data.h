@@ -3,21 +3,14 @@
 #include <Eigen/Core>
 #include <memory>
 
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
+using MatrixX = Eigen::MatrixXd;
+using VectorX = Eigen::VectorXd;
+// using MatrixX = Eigen::Matrix<double, -1, -1, 0, 120, 120>;
+// using VectorX = Eigen::Matrix<double, -1, 1, 0, 200>;
 using std::unique_ptr;
 
 struct Data {
-  MatrixXd A, B;
-  VectorXd a, b, c;
+  MatrixX A, B;
+  VectorX a, b, c;
+  Data(long na, long nb, long nc) : A(na, nb), B(nb, nc), a(na), b(nb), c(nc) {}
 };
-
-inline Data createData(long na, long nb, long nc) {
-  Data out{{na, nb}, {nb, nc}, VectorXd(na), VectorXd(nb), VectorXd(nc)};
-  out.A.setZero();
-  out.B.setZero();
-  out.a.setZero();
-  out.b.setZero();
-  out.c.setZero();
-  return out;
-}

@@ -1,30 +1,24 @@
 #include "data.h"
 #include <benchmark/benchmark.h>
-#include <tbb/blocked_range.h>
 #include <tbb/cache_aligned_allocator.h>
-#include <tbb/parallel_for.h>
-#include <tbb/global_control.h>
-
-using tbb::cache_aligned_allocator;
 
 void run_task(Data &d) {
   d.b.noalias() = d.B * d.c;
   d.a.noalias() = d.A * d.b;
 }
 
-using StdVecData = std::vector<Data, cache_aligned_allocator<Data>>;
+using StdVecData = std::vector<Data, tbb::cache_aligned_allocator<Data>>;
 
 #define BOILERPLATE(state)                                                     \
   uint N = (uint)state.range(0);                                               \
   auto NTHREADS = state.range(1);                                              \
-  omp_set_num_threads(NTHREADS);                                               \
   StdVecData data;                                                             \
   data.reserve(N);                                                             \
   long na = 30;                                                                \
-  long nb = 40;                                                                \
-  long nc = 80;                                                                \
+  long nb = 20;                                                                \
+  long nc = 20;                                                                \
   for (uint t = 0; t < N; t++) {                                               \
-    data.emplace_back(createData(na, nb, nc));                                 \
+    data.emplace_back(na, nb, nc);                                             \
   }
 
 std::array<uint, 2> get_work(uint N, uint threadId, uint numThreads) {
@@ -73,6 +67,5 @@ void CustomArgs(benchmark::internal::Benchmark *bench) {
 }
 
 BENCHMARK(BM_openmp)->Apply(CustomArgs);
-BENCHMARK(BM_tbb)->Apply(CustomArgs);
 
 BENCHMARK_MAIN();
