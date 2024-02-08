@@ -1,111 +1,85 @@
 /// Compare malloc'ing Eigen::Matrix objects contigously in a struct
 /// to malloc'ing a buffer and pointing Eigen::Map objects to it
-#include <benchmark/benchmark.h>
-#include <iostream>
-#include "data.h"
-
-using MatrixMap = Eigen::Map<MatrixX>;
-using VectorMap = Eigen::Map<VectorX>;
-using std::unique_ptr;
-
-struct ContData {
-  MatrixMap A, B;
-  VectorMap b;
-  VectorMap c;
-  unique_ptr<double[]> mem;
-};
-
-auto createContData(long na, long nb, long nc) -> ContData {
-  const long ntot = na * nb + nb * nc + nb + nc;
-  auto p = new double[ntot];
-  size_t offset = 0;
-  MatrixMap A(p + offset, na, nb);
-  offset += na * nb;
-  MatrixMap B(p + offset, nb, nc);
-  offset += nb * nc;
-  VectorMap b(p + offset, nb);
-  offset += nb;
-  VectorMap c(p + offset, nc);
-  A.setZero();
-  B.setZero();
-  b.setZero();
-  c.setZero();
-  return ContData{A, B, b, c, decltype(ContData::mem)(p)};
-}
+#include "lib/data.h"
+#include "lib/contig_data.h"
+#include <memory_resource>
 
 template <class S> void memberDist(const S &d) {
-  auto AB = std::distance(d.A.data(), d.B.data());
-  std::cout << "A-->B " << AB << "\n";
-  auto Bb = std::distance(d.B.data(), d.b.data());
-  std::cout << "B-->b " << Bb << "\n";
-  auto bc = std::distance(d.b.data(), d.c.data());
-  std::cout << "b-->c " << bc << "\n";
+  fmt::print("[{}] ", __func__);
+  auto Aa = std::distance(eigen_end_ptr(d.A), d.a.data());
+  fmt::print("A<-->a {}", Aa);
+  auto ab = std::distance(eigen_end_ptr(d.a), d.b.data());
+  fmt::println(" a<-->b {}", ab);
 }
 
-static void BM_noncont(benchmark::State &state) {
-  long na = (long)state.range(0);
-  long nb = na * 2;
-  long nc = (long)state.range(1);
-  VectorX a(na);
-  Data d(na, nb, nc);
+void compare_distances(long na, long nb) {
 
-  for (auto _ : state) {
-    d.b.noalias() = d.B * d.c;
-    a.noalias() = d.A * d.b;
-    benchmark::DoNotOptimize(a);
-    benchmark::ClobberMemory();
+  fmt::println("COMPARE DISTANCES");
+  fmt::println("Data (owned)");
+  uint nrep = 3;
+  for (uint t = 0; t < nrep; t++) {
+    Data d(na, nb);
+    memberDist(d);
+    runTask(d);
+  }
+
+  fmt::println("ContDataOwned");
+  for (uint t = 0; t < nrep; t++) {
+    auto cd = createContData(na, nb);
+    memberDist(cd);
+    runTask(cd);
+    destroyContOwned(cd, DEFAULT_DYN_ALIGN);
   }
 }
 
-static void BM_cont(benchmark::State &state) {
-  long na = (long)state.range(0);
-  long nb = na * 2;
-  long nc = (long)state.range(1);
-  VectorX a(na);
-  ContData d = createContData(na, nb, nc);
-
-  for (auto _ : state) {
-    d.b.noalias() = d.B * d.c;
-    a.noalias() = d.A * d.b;
-    benchmark::DoNotOptimize(a);
-    benchmark::ClobberMemory();
+void compute_dist_vecs(long na, long nb) {
+  size_t N = 40;
+  fmt::println("== Data ==");
+  std::vector<Data> ds;
+  ds.reserve(N);
+  for (size_t i = 0; i < N; i++) {
+    ds.emplace_back(na, nb);
   }
+  check_contiguous_vec(ds);
+
+  fmt::println("== ContDataOwned ==");
+  std::vector<ContDataOwned> dsc;
+  dsc.reserve(N);
+  for (size_t i = 0; i < N; i++) {
+    dsc.emplace_back(createContData(na, nb));
+  }
+  check_contiguous_vec(dsc);
+  for (size_t i = 0; i < N; i++)
+    destroyContOwned(dsc[i], DEFAULT_DYN_ALIGN);
+
+  // OTHER
+  fmt::println("== special_vector ==");
+  special_vector vec = createContiguousVectorOfData(N, na, nb);
+  check_contiguous_vec(vec.data);
+  for (size_t i = 0; i < N; i++) {
+    runTask(vec.data[i]);
+  }
+  fmt::println("Destroy");
 }
 
-void CustomArgs(benchmark::internal::Benchmark *bench) {
-  for (long e = 2; e < 5; e++) {
-    for (long p : {2, 4, 5, 6, 8, 10}) {
-      bench->Args({10 * e, 10 * p});
-    }
-  }
-}
-
-BENCHMARK(BM_cont)->Apply(CustomArgs);
-BENCHMARK(BM_noncont)->Apply(CustomArgs);
-
-void compare_distances() {
-  std::cout << "COMPARE DISTANCES\n";
-  auto cd = createContData(100, 100, 40);
-  memberDist(cd);
-
-  Data d(100, 100, 40);
-  memberDist(d);
+auto make_pmr_data(long na, long nb) {
+  auto *mr = std::pmr::new_delete_resource();
+  constexpr size_t align = DEFAULT_DYN_ALIGN;
+  using AMR = AlignedMemRequest;
+  AMR req = AMR::with_type<double>(na * nb, align) &
+            AMR::with_type<double>(na, align) &
+            AMR::with_type<double>(nb, align);
+  size_t numBytes = req.alloc_req();
+  void *buf = mr->allocate(numBytes, align);
+  mr->deallocate(buf, numBytes, align);
 }
 
 int main(int argc, char **argv) {
+  long na = 100;
+  long nb = 100;
+  compare_distances(na, nb);
 
-  compare_distances();
+  compute_dist_vecs(na, nb);
 
-  char arg0_default[] = "benchmark";
-  char *args_default = arg0_default;
-  if (!argv) {
-    argc = 1;
-    argv = &args_default;
-  }
-  ::benchmark::Initialize(&argc, argv);
-  if (::benchmark::ReportUnrecognizedArguments(argc, argv))
-    return 1;
-  ::benchmark::RunSpecifiedBenchmarks();
-  ::benchmark::Shutdown();
-  return 0;
+  make_pmr_data(na, nb);
 }
