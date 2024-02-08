@@ -6,6 +6,7 @@
 
 using MatrixMap = Eigen::Map<MatrixX>;
 using VectorMap = Eigen::Map<VectorX>;
+using std::unique_ptr;
 
 struct ContData {
   MatrixMap A, B;
@@ -17,7 +18,7 @@ struct ContData {
 auto createContData(long na, long nb, long nc) -> ContData {
   const long ntot = na * nb + nb * nc + nb + nc;
   auto p = new double[ntot];
-  std::size_t offset = 0;
+  size_t offset = 0;
   MatrixMap A(p + offset, na, nb);
   offset += na * nb;
   MatrixMap B(p + offset, nb, nc);
