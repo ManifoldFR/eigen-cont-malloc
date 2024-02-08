@@ -56,12 +56,14 @@ void BM_tbb(benchmark::State &state) {
   Eigen::setNbThreads(0);
 }
 
+std::vector<long> Ns = {20, 40, 50, 60, 80, 100, 150};
+
 void CustomArgs(benchmark::internal::Benchmark *bench) {
   bench->ArgNames({"N", "threads"});
   bench->Unit(benchmark::kMicrosecond)->UseRealTime();
-  for (long e : {2, 4, 5, 6, 8, 10, 15}) {
+  for (long e : Ns) {
     for (long nt : {1, 2, 4, 6}) {
-      bench->Args({10 * e, nt});
+      bench->Args({e, nt});
     }
   }
 }
