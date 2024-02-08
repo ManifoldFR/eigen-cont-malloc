@@ -10,7 +10,7 @@ void run_task(Data &d) {
 using StdVecData = std::vector<Data, tbb::cache_aligned_allocator<Data>>;
 
 #define BOILERPLATE(state)                                                     \
-  uint N = (uint)state.range(0);                                               \
+  auto N = (uint)state.range(0);                                               \
   auto NTHREADS = state.range(1);                                              \
   StdVecData data;                                                             \
   data.reserve(N);                                                             \
@@ -37,20 +37,6 @@ void BM_openmp(benchmark::State &state) {
     for (uint t = 0; t < N; t++) {
       run_task(data[t]);
     }
-  }
-
-  Eigen::setNbThreads(0);
-}
-
-void BM_tbb(benchmark::State &state) {
-  BOILERPLATE(state)
-  tbb::global_control ctrl(tbb::global_control::max_allowed_parallelism,
-                           NTHREADS);
-
-  Eigen::setNbThreads(1);
-
-  for (auto _ : state) {
-    tbb::parallel_for(0U, N, [&](uint t) { run_task(data[t]); });
   }
 
   Eigen::setNbThreads(0);
