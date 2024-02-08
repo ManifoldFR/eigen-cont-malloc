@@ -29,6 +29,7 @@ std::array<uint, 2> get_work(uint N, uint threadId, uint numThreads) {
 
 void BM_openmp(benchmark::State &state) {
   BOILERPLATE(state)
+  check_contiguous_vec(data);
 
   Eigen::setNbThreads(1);
 
