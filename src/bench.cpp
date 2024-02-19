@@ -51,7 +51,7 @@ void BM_contigs(benchmark::State &state) {
   }
 
   for (size_t i = 0; i < N; i++) {
-    destroyContOwned(data[i], DEFAULT_DYN_ALIGN);
+    data[i].destroy(DEFAULT_DYN_ALIGN);
   }
 }
 

@@ -7,25 +7,27 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(Eigen3 REQUIRED)
 find_package(benchmark REQUIRED)
+find_package(OpenMP REQUIRED)
+find_package(fmt REQUIRED)
+find_package(TBB REQUIRED)
+add_compile_definitions(EIGEN_DONT_PARALLELIZE)
 
 
 file(GLOB UTIL_SOURCES CONFIGURE_DEPENDS src/lib/*.cpp)
 message(STATUS "Util sources: ${UTIL_SOURCES}")
 add_library(utils SHARED ${UTIL_SOURCES})
+
 target_link_libraries(utils PUBLIC Eigen3::Eigen fmt::fmt)
 target_link_libraries(utils PUBLIC OpenMP::OpenMP_CXX TBB::tbb TBB::tbbmalloc)
 
-add_executable(main src/main.cpp)
-target_link_libraries(main PRIVATE utils)
 
-find_package(OpenMP REQUIRED)
-find_package(TBB REQUIRED)
-find_package(fmt REQUIRED)
-add_compile_definitions(EIGEN_DONT_PARALLELIZE)
 
-function(add_par_target file name)
+function(my_add_target file)
+  get_filename_component(name ${file} NAME_WE)
   add_executable(${name} ${file})
-  target_link_libraries(${name} PRIVATE utils benchmark::benchmark)
+  target_link_libraries(${name} PRIVATE utils)
 endfunction()
 
-add_par_target(src/parallel.cpp parallel)
+my_add_target(src/main.cpp)
+my_add_target(src/bench.cpp)
+target_link_libraries(bench PRIVATE benchmark::benchmark)
