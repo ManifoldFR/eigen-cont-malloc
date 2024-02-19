@@ -4,7 +4,7 @@
 #include "lib/contig_data.h"
 #include <memory_resource>
 
-template <class S> void memberDist(const S &d) {
+template <class S> void printMemberDistances(const S &d) {
   fmt::print("[{}] ", __func__);
   auto Aa = std::distance(eigen_end_ptr(d.A), d.a.data());
   fmt::print("A<-->a {}", Aa);
@@ -19,16 +19,16 @@ void compare_distances(long na, long nb) {
   uint nrep = 3;
   for (uint t = 0; t < nrep; t++) {
     Data d(na, nb);
-    memberDist(d);
+    printMemberDistances(d);
     runTask(d);
   }
 
   fmt::println("ContDataOwned");
   for (uint t = 0; t < nrep; t++) {
     auto cd = createContData(na, nb);
-    memberDist(cd);
+    printMemberDistances(cd);
     runTask(cd);
-    destroyContOwned(cd, DEFAULT_DYN_ALIGN);
+    cd.destroy(DEFAULT_DYN_ALIGN);
   }
 }
 
@@ -50,7 +50,7 @@ void compute_dist_vecs(long na, long nb) {
   }
   check_contiguous_vec(dsc);
   for (size_t i = 0; i < N; i++)
-    destroyContOwned(dsc[i], DEFAULT_DYN_ALIGN);
+    dsc[i].destroy(DEFAULT_DYN_ALIGN);
 
   // OTHER
   fmt::println("== special_vector ==");

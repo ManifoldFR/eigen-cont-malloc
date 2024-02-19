@@ -35,11 +35,11 @@ struct alignas(64) ContDataOwned {
   MatrixMap A;
   VectorMap a, b;
   double *mem;
+  void destroy(size_t align) {
+    ::operator delete[](mem, std::align_val_t(align));
+  }
 };
 
-inline void destroyContOwned(ContDataOwned &d, size_t align) {
-  ::operator delete[](d.mem, std::align_val_t(align));
-}
 
 ContDataOwned createContData(long na, long nb, double *&buf,
                              size_t &bufferSize);
