@@ -40,7 +40,6 @@ struct alignas(64) ContDataOwned {
   }
 };
 
-
 ContDataOwned createContData(long na, long nb, double *&buf,
                              size_t &bufferSize);
 ContDataOwned createContData(long na, long nb);

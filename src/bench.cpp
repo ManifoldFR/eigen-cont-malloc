@@ -20,6 +20,21 @@ std::array<uint, 2> get_work(uint N, uint threadId, uint numThreads) {
   return {start, end};
 }
 
+void BM_serial(benchmark::State &state) {
+  // using StdVecData = std::vector<Data, cache_aligned_allocator<Data>>;
+  using StdVecData = std::vector<Data>;
+  BOILERPLATE(state, StdVecData)
+  for (uint t = 0; t < N; t++) {
+    data.emplace_back(na, nb);
+  }
+
+  for (auto _ : state) {
+    for (uint t = 0; t < N; t++) {
+      runTask(data[t]);
+    }
+  }
+}
+
 void BM_openmp(benchmark::State &state) {
   // using StdVecData = std::vector<Data, cache_aligned_allocator<Data>>;
   using StdVecData = std::vector<Data>;
@@ -68,18 +83,23 @@ void BM_veccontigs(benchmark::State &state) {
   }
 }
 
-const std::vector<long> Ns = {20, 40, 50, 100, 150, 200};
+const std::vector<long> Ns = {50, 100};
 
 void CustomArgs(benchmark::internal::Benchmark *bench) {
   bench->ArgNames({"N", "threads"});
   bench->Unit(benchmark::kMicrosecond)->UseRealTime();
-  for (long e : Ns) {
-    for (long nt : {1, 2, 4, 6}) {
+  for (long nt : {2, 4, 6}) {
+    for (long e : Ns) {
       bench->Args({e, nt});
     }
   }
 }
 
+BENCHMARK(BM_serial)->Apply(+[](benchmark::internal::Benchmark *bench) {
+  bench->Unit(benchmark::kMicrosecond)->UseRealTime()->ArgName("N");
+  for (long e : Ns)
+    bench->Arg(e);
+});
 BENCHMARK(BM_openmp)->Apply(CustomArgs);
 BENCHMARK(BM_contigs)->Apply(CustomArgs);
 BENCHMARK(BM_veccontigs)->Apply(CustomArgs);
