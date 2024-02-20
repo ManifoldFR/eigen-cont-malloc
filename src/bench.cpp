@@ -31,7 +31,8 @@ void BM_basic(benchmark::State &state) {
   for (auto _ : state) {
 #pragma omp parallel for num_threads(NTHREADS)
     for (uint t = 0; t < N; t++) {
-      runTask(data[t]);
+      auto v = runTask(data[t]);
+      benchmark::DoNotOptimize(v);
     }
   }
 }
@@ -46,7 +47,8 @@ void BM_contigs(benchmark::State &state) {
   for (auto _ : state) {
 #pragma omp parallel for num_threads(NTHREADS)
     for (uint t = 0; t < N; t++) {
-      runTask(data[t]);
+      auto v = runTask(data[t]);
+      benchmark::DoNotOptimize(v);
     }
   }
 
@@ -63,12 +65,13 @@ void BM_veccontigs(benchmark::State &state) {
   for (auto _ : state) {
 #pragma omp parallel for num_threads(NTHREADS)
     for (uint t = 0; t < N; t++) {
-      runTask(vec.data[t]);
+      auto v = runTask(vec.data[t]);
+      benchmark::DoNotOptimize(v);
     }
   }
 }
 
-const std::vector<long> Ns = {16, 32, 64, 128, 256};
+const std::vector<long> Ns = {16, 32, 64, 96, 128, 160, 192, 224, 256, 512};
 
 void CustomArgs(benchmark::internal::Benchmark *bench) {
   bench->ArgNames({"N", "threads"});

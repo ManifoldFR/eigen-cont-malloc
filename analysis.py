@@ -80,13 +80,6 @@ def __(df, pl, plt):
 
 
 @app.cell
-def __(df, pl):
-    _grp = df.filter(pl.col("threads") == 1).group_by(["b", "N"])
-    _grp.first()
-    return
-
-
-@app.cell
 def __(df, plt):
     _fig, _ax = plt.subplots(figsize=(8,6))
 
@@ -97,20 +90,59 @@ def __(df, plt):
         "veccontigs": "tab:green"
     }
 
-    for (name,th), _sdf in df.partition_by(["b", "threads"], as_dict=True).items():
+    for (_name, _th), _sdf in df.partition_by(["b", "threads"], as_dict=True).items():
         _ax.plot(_sdf["N"], _sdf["scaled"],
-                 ls=lss[th], color=colors[name],
-                 label="{} ({}c)".format(name, th))
+                 ls=lss[_th],
+                 color=colors[_name],
+                 label="{} ({}c)".format(_name, _th))
 
     _ax.legend()
     _ax.set_ylabel("Time $\\times$ threads [µs]")
     _ax.set_xlabel("$N$")
-    _ax.set_yscale("log")
-    _ax.set_xscale("log")
-    _ax.set_title("Scaled time vs. workload vs. threads")
+    # _ax.set_yscale("log")
+    # _ax.set_xscale("log")
+    _ax.set_ylim((-1.0, 2700))
+    _ax.set_title("Scaled time vs. workload (lower is better)")
     _fig.savefig("time-vs-size-vs-threads.png")
     _ax
-    return colors, lss, name, th
+    return colors, lss
+
+
+@app.cell
+def __(df, pl):
+    _grp = df.filter(pl.col("threads") == 1).drop("threads").group_by(["b", "N"])
+    _divs = _grp.first().to_dicts()
+    _divs = { (d["b"], d["N"]) : d["time"] for d in _divs }
+    print(_divs)
+    def fn(entry):
+        return _divs[(entry[0], entry[1])] / entry[4] 
+
+    #df.with_columns(
+    #    eff=df.map_rows(fn)
+    #)
+    df_eff = df.with_columns(df.map_rows(fn).rename({"map": "eff"}))
+    return df_eff, fn
+
+
+@app.cell
+def __(colors, df_eff, lss, plt):
+    _fig, _ax = plt.subplots(figsize=(10,8))
+
+
+    for (name, th), _sdf in df_eff.partition_by(["b", "threads"], as_dict=True).items():
+        if th == 1: continue
+        _ax.plot(_sdf["N"], _sdf["eff"],
+                 ls=lss[th],
+                 color=colors[name],
+                 label="{} ({}c)".format(name, th))
+
+    _ax.legend()
+    _ax.set_ylabel("Efficiency")
+    _ax.set_xlabel("$N$")
+    _ax.set_xscale("log")
+    _ax.set_title("Efficiency vs. workload vs. threads")
+    _ax
+    return name, th
 
 
 if __name__ == "__main__":

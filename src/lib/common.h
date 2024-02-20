@@ -47,9 +47,12 @@ void check_contiguous_vec(const std::vector<D, A> &datas) {
   }
 }
 
-template <class DataType> void runTask(DataType &d) {
-  for (size_t i = 0; i < 100; i++) {
+template <class DataType> double runTask(DataType &d) {
+  double out = 0.;
+  for (size_t i = 0; i < 50; i++) {
     d.a.noalias() = d.A * d.b;
     d.b.noalias() = d.A.transpose() * d.a;
+    out += d.b.sum();
   }
+  return out;
 }
