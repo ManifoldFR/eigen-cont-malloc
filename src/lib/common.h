@@ -56,3 +56,32 @@ template <class DataType> double runTask(DataType &d) {
   }
   return out;
 }
+
+// Extract an Eigen::Map from the memory buffer and shift its pointer.
+template <class D>
+auto getEigenMap(typename D::Scalar *&ptr, long rows, long cols,
+                 size_t &remainingBufferSize) {
+  using T = typename D::Scalar;
+  constexpr size_t Align = DEFAULT_DYN_ALIGN;
+  size_t size = size_t(rows * cols);
+  T *mem = align_scalar_ptr(Align, size, ptr, remainingBufferSize);
+  Eigen::Map<D, Align> mat(ptr, rows, cols);
+  ptr = ptr + size;
+  remainingBufferSize -= size;
+  assert(mem != nullptr);
+  return mat;
+}
+
+template <class D>
+auto getEigenMap(typename D::Scalar *&ptr, long size,
+                 size_t &remainingBufferSize) {
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(D);
+  using T = typename D::Scalar;
+  constexpr size_t Align = DEFAULT_DYN_ALIGN;
+  T *mem = align_scalar_ptr(Align, size_t(size), ptr, remainingBufferSize);
+  Eigen::Map<D, Align> mat(ptr, size);
+  ptr = ptr + size;
+  remainingBufferSize -= size;
+  assert(mem != nullptr);
+  return mat;
+}
