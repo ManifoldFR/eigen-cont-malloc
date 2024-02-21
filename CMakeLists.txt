@@ -30,4 +30,5 @@ endfunction()
 
 my_add_target(src/main.cpp)
 my_add_target(src/bench.cpp)
+my_add_target(src/test_pmr.cpp)
 target_link_libraries(bench PRIVATE benchmark::benchmark)
