@@ -28,6 +28,7 @@ constexpr size_t roundUpMultiplePow2(size_t a, size_t align) noexcept {
 struct AlignedMemRequest {
   size_t size;
   size_t align;
+  AlignedMemRequest() = default;
   constexpr AlignedMemRequest(size_t size_, size_t align) noexcept
       : size(size_), align(align) {
     size = roundUpMultiplePow2(size_, align);

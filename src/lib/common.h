@@ -57,10 +57,18 @@ template <class DataType> double runTask(DataType &d) {
   return out;
 }
 
+template <class S> void print_member_dist(const S &d) {
+  fmt::print("[{}] ", __func__);
+  auto Aa = std::distance(eigen_end_ptr(d.A), d.a.data());
+  fmt::print("A<-->a {}", Aa);
+  auto ab = std::distance(eigen_end_ptr(d.a), d.b.data());
+  fmt::println(" a<-->b {}", ab);
+}
+
 // Extract an Eigen::Map from the memory buffer and shift its pointer.
 template <class D>
-auto getEigenMap(typename D::Scalar *&ptr, long rows, long cols,
-                 size_t &remainingBufferSize) {
+auto get_eigen_map_from_buf(typename D::Scalar *&ptr, long rows, long cols,
+                            size_t &remainingBufferSize) {
   using T = typename D::Scalar;
   constexpr size_t Align = DEFAULT_DYN_ALIGN;
   size_t size = size_t(rows * cols);
@@ -73,8 +81,8 @@ auto getEigenMap(typename D::Scalar *&ptr, long rows, long cols,
 }
 
 template <class D>
-auto getEigenMap(typename D::Scalar *&ptr, long size,
-                 size_t &remainingBufferSize) {
+auto get_eigen_map_from_buf(typename D::Scalar *&ptr, long size,
+                            size_t &remainingBufferSize) {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(D);
   using T = typename D::Scalar;
   constexpr size_t Align = DEFAULT_DYN_ALIGN;

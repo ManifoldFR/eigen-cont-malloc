@@ -4,14 +4,6 @@
 #include "lib/contig_data.h"
 #include <memory_resource>
 
-template <class S> void printMemberDistances(const S &d) {
-  fmt::print("[{}] ", __func__);
-  auto Aa = std::distance(eigen_end_ptr(d.A), d.a.data());
-  fmt::print("A<-->a {}", Aa);
-  auto ab = std::distance(eigen_end_ptr(d.a), d.b.data());
-  fmt::println(" a<-->b {}", ab);
-}
-
 void compare_distances(long na, long nb) {
 
   fmt::println("COMPARE DISTANCES");
@@ -19,14 +11,14 @@ void compare_distances(long na, long nb) {
   uint nrep = 3;
   for (uint t = 0; t < nrep; t++) {
     Data d(na, nb);
-    printMemberDistances(d);
+    print_member_dist(d);
     runTask(d);
   }
 
   fmt::println("ContDataOwned");
   for (uint t = 0; t < nrep; t++) {
     auto cd = createContData(na, nb);
-    printMemberDistances(cd);
+    print_member_dist(cd);
     runTask(cd);
     cd.destroy(DEFAULT_DYN_ALIGN);
   }
