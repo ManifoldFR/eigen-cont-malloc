@@ -25,12 +25,15 @@ void compare_distances(long na, long nb) {
 }
 
 void compute_dist_vecs(long na, long nb) {
-  size_t N = 40;
+  size_t N = 10;
   fmt::println("== Data ==");
   std::vector<Data> ds;
   ds.reserve(N);
   for (size_t i = 0; i < N; i++) {
     ds.emplace_back(na, nb);
+    if (i == 0) {
+      data_print(ds[0]);
+    }
   }
   check_contiguous_vec(ds);
 
@@ -39,6 +42,9 @@ void compute_dist_vecs(long na, long nb) {
   dsc.reserve(N);
   for (size_t i = 0; i < N; i++) {
     dsc.emplace_back(createContData(na, nb));
+    if (i == 0) {
+      data_print(dsc[0]);
+    }
   }
   check_contiguous_vec(dsc);
   for (size_t i = 0; i < N; i++)
@@ -67,8 +73,9 @@ auto make_pmr_data(long na, long nb) {
 }
 
 int main(int argc, char **argv) {
-  long na = 100;
-  long nb = 100;
+  long na = 10;
+  long nb = 10;
+  Eigen::initParallel();
   compare_distances(na, nb);
 
   compute_dist_vecs(na, nb);

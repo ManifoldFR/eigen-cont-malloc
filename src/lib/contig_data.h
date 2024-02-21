@@ -1,6 +1,5 @@
 #pragma once
 
-#include "mem_req.h"
 #include "common.h"
 
 struct alignas(64) ContDataOwned {

@@ -32,7 +32,7 @@ def __(orjson):
 
 
 @app.cell
-def __():
+def __(bench_data):
     import re
 
     def extract(entry):
@@ -46,14 +46,9 @@ def __():
             "threads": int(th),
             "time": entry["real_time"]
         }
-    return extract, re
-
-
-@app.cell
-def __(bench_data, extract):
     processed_ = [extract(d) for d in bench_data]
     processed_
-    return processed_,
+    return extract, processed_, re
 
 
 @app.cell
@@ -80,15 +75,19 @@ def __(df, pl, plt):
 
 
 @app.cell
-def __(df, plt):
-    _fig, _ax = plt.subplots(figsize=(8,6))
-
-    lss = {1: "-", 2:"dotted", 4:"-.", 6:"--"}
+def __():
+    lss = {1: "-", 2: "dotted", 4: "-.", 6: "--"}
     colors = {
         "basic": "tab:blue",
         "contigs": "tab:orange",
         "veccontigs": "tab:green"
     }
+    return colors, lss
+
+
+@app.cell
+def __(colors, df, lss, plt):
+    _fig, _ax = plt.subplots(figsize=(8,6))
 
     for (_name, _th), _sdf in df.partition_by(["b", "threads"], as_dict=True).items():
         _ax.plot(_sdf["N"], _sdf["scaled"],
@@ -101,11 +100,10 @@ def __(df, plt):
     _ax.set_xlabel("$N$")
     # _ax.set_yscale("log")
     # _ax.set_xscale("log")
-    _ax.set_ylim((-1.0, 2700))
     _ax.set_title("Scaled time vs. workload (lower is better)")
     _fig.savefig("time-vs-size-vs-threads.png")
     _ax
-    return colors, lss
+    return
 
 
 @app.cell
@@ -115,11 +113,8 @@ def __(df, pl):
     _divs = { (d["b"], d["N"]) : d["time"] for d in _divs }
     print(_divs)
     def fn(entry):
-        return _divs[(entry[0], entry[1])] / entry[4] 
+        return _divs[(entry[0], entry[1])] / entry[4]
 
-    #df.with_columns(
-    #    eff=df.map_rows(fn)
-    #)
     df_eff = df.with_columns(df.map_rows(fn).rename({"map": "eff"}))
     return df_eff, fn
 

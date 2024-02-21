@@ -4,9 +4,8 @@
 #include <tbb/cache_aligned_allocator.h>
 #include <omp.h>
 
-using tbb::cache_aligned_allocator;
-long na = 4;
-long nb = 4;
+long na = 40;
+long nb = 40;
 
 #define BOILERPLATE(state, vectype)                                            \
   auto N = (uint)state.range(0);                                               \
@@ -38,7 +37,7 @@ void BM_basic(benchmark::State &state) {
 }
 
 void BM_contigs(benchmark::State &state) {
-  using V = std::vector<ContDataOwned, cache_aligned_allocator<ContDataOwned>>;
+  using V = std::vector<ContDataOwned>;
   BOILERPLATE(state, V)
   for (uint t = 0; t < N; t++) {
     data.emplace_back(createContData(na, nb));
@@ -71,7 +70,7 @@ void BM_veccontigs(benchmark::State &state) {
   }
 }
 
-const std::vector<long> Ns = {16, 32, 64, 96, 128, 160, 192, 224, 256, 512};
+const std::vector<long> Ns = {16, 32, 64, 128, 192, 256, 512};
 
 void CustomArgs(benchmark::internal::Benchmark *bench) {
   bench->ArgNames({"N", "threads"});
@@ -87,4 +86,18 @@ BENCHMARK(BM_basic)->Apply(CustomArgs);
 BENCHMARK(BM_contigs)->Apply(CustomArgs);
 BENCHMARK(BM_veccontigs)->Apply(CustomArgs);
 
-BENCHMARK_MAIN();
+int main(int argc, char **argv) {
+  // Eigen::initParallel();
+  char arg0_default[] = "benchmark";
+  char *args_default = arg0_default;
+  if (!argv) {
+    argc = 1;
+    argv = &args_default;
+  }
+  benchmark::Initialize(&argc, argv);
+  if (benchmark::ReportUnrecognizedArguments(argc, argv))
+    return 1;
+  benchmark::RunSpecifiedBenchmarks();
+  benchmark::Shutdown();
+  return 0;
+}

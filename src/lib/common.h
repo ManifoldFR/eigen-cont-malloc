@@ -2,6 +2,8 @@
 
 #include <Eigen/Core>
 #include <fmt/core.h>
+#include <fmt/ostream.h>
+#include "mem_req.h"
 
 using MatrixX = Eigen::MatrixXd;
 using VectorX = Eigen::VectorXd;
@@ -63,6 +65,12 @@ template <class S> void print_member_dist(const S &d) {
   fmt::print("A<-->a {}", Aa);
   auto ab = std::distance(eigen_end_ptr(d.a), d.b.data());
   fmt::println(" a<-->b {}", ab);
+}
+
+template <class D> void data_print(const D &d) {
+  fmt::println("A = {}", fmt::streamed(d.A));
+  fmt::println("a = {}", fmt::streamed(d.a.transpose()));
+  fmt::println("b = {}", fmt::streamed(d.b.transpose()));
 }
 
 // Extract an Eigen::Map from the memory buffer and shift its pointer.
