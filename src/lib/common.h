@@ -22,7 +22,7 @@ template <class D> inline auto *data_start_ptr(const D &d) {
 }
 
 template <class D> inline auto *data_end_ptr(const D &d) {
-  return d.b.data() + d.b.size();
+  return eigen_end_ptr(d.b);
 }
 
 template <class D, class A>
