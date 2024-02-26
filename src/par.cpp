@@ -1,14 +1,13 @@
 #include <omp.h>
 #include <benchmark/benchmark.h>
-#include <tbb/parallel_for.h>
-#include <tbb/global_control.h>
+// #include <tbb/parallel_for.h>
+// #include <tbb/global_control.h>
 #include <Eigen/Core>
-#include <unsupported/Eigen/CXX11/ThreadPool>
 
 using Eigen::Matrix4d;
 using Eigen::Vector4d;
 
-constexpr int N = 12;
+const int N = 40;
 using Mat = Eigen::Matrix<double, -1, -1>;
 using Vec = Eigen::Matrix<double, -1, 1>;
 
@@ -28,7 +27,7 @@ double workload() {
   return s;
 }
 
-const uint nwork = 120;
+const size_t nwork = 120;
 
 void serial(benchmark::State &s) {
 
@@ -54,18 +53,18 @@ void parallel(benchmark::State &s) {
   }
 }
 
-void paralleltbb(benchmark::State &s) {
-  size_t num_threads = (size_t)s.range(0);
-  tbb::global_control aq(tbb::global_control::max_allowed_parallelism,
-                         num_threads);
+// void paralleltbb(benchmark::State &s) {
+//   size_t num_threads = (size_t)s.range(0);
+//   tbb::global_control aq(tbb::global_control::max_allowed_parallelism,
+//                          num_threads);
 
-  for (auto _ : s) {
-    tbb::parallel_for(0u, nwork, [](uint) {
-      auto v = workload();
-      benchmark::DoNotOptimize(v);
-    });
-  }
-}
+//   for (auto _ : s) {
+//     tbb::parallel_for(0u, nwork, [](uint) {
+//       auto v = workload();
+//       benchmark::DoNotOptimize(v);
+//     });
+//   }
+// }
 
 BENCHMARK(serial)->Unit(benchmark::kMicrosecond)->UseRealTime();
 BENCHMARK(parallel)
@@ -74,12 +73,12 @@ BENCHMARK(parallel)
     ->Arg(2)
     ->Arg(4)
     ->Arg(6);
-BENCHMARK(paralleltbb)
-    ->Unit(benchmark::kMicrosecond)
-    ->UseRealTime()
-    ->Arg(2)
-    ->Arg(4)
-    ->Arg(6);
+// BENCHMARK(paralleltbb)
+//     ->Unit(benchmark::kMicrosecond)
+//     ->UseRealTime()
+//     ->Arg(2)
+//     ->Arg(4)
+//     ->Arg(6);
 
 int main(int argc, char **argv) {
   // Eigen::initParallel();
