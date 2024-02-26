@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.2.5"
+__generated_with = "0.2.8"
 app = marimo.App(width="full")
 
 
@@ -23,18 +23,24 @@ def __():
 
 @app.cell
 def __(orjson):
-    with open("data/parallel.json") as f:
+    import re
+    import os
+
+    filename = "data/parallel-nomarchnative.json"
+    TAG = re.search("-(.*)\.json", filename).groups()[0]
+    print("Tag:", TAG)
+    os.makedirs(TAG, exist_ok=True)
+
+    with open(filename) as f:
         bench_data = orjson.loads(f.read())
 
     bench_data = bench_data["benchmarks"]
     bench_data
-    return bench_data, f
+    return TAG, bench_data, f, filename, os, re
 
 
 @app.cell
-def __(bench_data):
-    import re
-
+def __(bench_data, re):
     def extract(entry):
         name = entry["name"]
         ex = re.compile("_([a-z]*)/N:([0-9]*)/threads:([0-9]*)")
@@ -48,7 +54,7 @@ def __(bench_data):
         }
     processed_ = [extract(d) for d in bench_data]
     processed_
-    return extract, processed_, re
+    return extract, processed_
 
 
 @app.cell
@@ -86,7 +92,7 @@ def __():
 
 
 @app.cell
-def __(colors, df, lss, plt):
+def __(TAG, colors, df, lss, plt):
     _fig, _ax = plt.subplots(figsize=(8,6))
 
     for (_name, _th), _sdf in df.partition_by(["b", "threads"], as_dict=True).items():
@@ -101,7 +107,7 @@ def __(colors, df, lss, plt):
     # _ax.set_yscale("log")
     # _ax.set_xscale("log")
     _ax.set_title("Scaled time vs. workload (lower is better)")
-    _fig.savefig("time-vs-size-vs-threads.png")
+    _fig.savefig(f"{TAG}/time-vs-size-vs-threads.png")
     _ax
     return
 
@@ -120,7 +126,7 @@ def __(df, pl):
 
 
 @app.cell
-def __(colors, df_eff, lss, plt):
+def __(TAG, colors, df_eff, lss, plt):
     _fig, _ax = plt.subplots(figsize=(10,8))
 
 
@@ -136,6 +142,7 @@ def __(colors, df_eff, lss, plt):
     _ax.set_xlabel("$N$")
     _ax.set_xscale("log")
     _ax.set_title("Efficiency vs. workload vs. threads")
+    _fig.savefig(f"{TAG}/efficiency-vs-size-vs-threads.png")
     _ax
     return name, th
 
