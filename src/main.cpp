@@ -4,26 +4,6 @@
 #include "lib/contig_data.h"
 #include <memory_resource>
 
-void compare_distances(long na, long nb) {
-
-  fmt::println("COMPARE DISTANCES");
-  fmt::println("Data (owned)");
-  uint nrep = 3;
-  for (uint t = 0; t < nrep; t++) {
-    Data d(na, nb);
-    print_member_dist(d);
-    runTask(d);
-  }
-
-  fmt::println("ContDataOwned");
-  for (uint t = 0; t < nrep; t++) {
-    auto cd = createContData(na, nb);
-    print_member_dist(cd);
-    runTask(cd);
-    cd.destroy(DEFAULT_DYN_ALIGN);
-  }
-}
-
 void compute_dist_vecs(long na, long nb) {
   size_t N = 10;
   fmt::println("== Data ==");
@@ -32,7 +12,7 @@ void compute_dist_vecs(long na, long nb) {
   for (size_t i = 0; i < N; i++) {
     ds.emplace_back(na, nb);
     if (i == 0) {
-      data_print(ds[0]);
+      print_member_dist(ds[0]);
     }
   }
   check_contiguous_vec(ds);
@@ -43,7 +23,7 @@ void compute_dist_vecs(long na, long nb) {
   for (size_t i = 0; i < N; i++) {
     dsc.emplace_back(createContData(na, nb));
     if (i == 0) {
-      data_print(dsc[0]);
+      print_member_dist(ds[0]);
     }
   }
   check_contiguous_vec(dsc);
@@ -53,6 +33,7 @@ void compute_dist_vecs(long na, long nb) {
   // OTHER
   fmt::println("== special_vector ==");
   special_vector vec = createContiguousVectorOfData(N, na, nb);
+  print_member_dist(vec.data[0]);
   check_contiguous_vec(vec.data);
   for (size_t i = 0; i < N; i++) {
     runTask(vec.data[i]);
@@ -76,7 +57,6 @@ int main(int argc, char **argv) {
   long na = 10;
   long nb = 10;
   Eigen::initParallel();
-  compare_distances(na, nb);
 
   compute_dist_vecs(na, nb);
 

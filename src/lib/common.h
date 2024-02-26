@@ -67,12 +67,6 @@ template <class S> void print_member_dist(const S &d) {
   fmt::println(" a<-->b {}", ab);
 }
 
-template <class D> void data_print(const D &d) {
-  fmt::println("A = {}", fmt::streamed(d.A));
-  fmt::println("a = {}", fmt::streamed(d.a.transpose()));
-  fmt::println("b = {}", fmt::streamed(d.b.transpose()));
-}
-
 // Extract an Eigen::Map from the memory buffer and shift its pointer.
 template <class D>
 auto get_eigen_map_from_buf(typename D::Scalar *&ptr, long rows, long cols,
