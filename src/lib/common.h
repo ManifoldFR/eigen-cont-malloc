@@ -49,14 +49,12 @@ void check_contiguous_vec(const std::vector<D, A> &datas) {
   }
 }
 
-template <class DataType> double runTask(DataType &d) {
-  double out = 0.;
-  for (size_t i = 0; i < 50; i++) {
+template <class DataType> void runTask(DataType &d) {
+  size_t iter = 10;
+  for (size_t i = 0; i < iter; i++) {
     d.a.noalias() = d.A * d.b;
     d.b.noalias() = d.A.transpose() * d.a;
-    out += d.b.sum();
   }
-  return out;
 }
 
 template <class S> void print_member_dist(const S &d) {

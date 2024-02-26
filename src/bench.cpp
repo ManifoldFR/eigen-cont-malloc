@@ -28,10 +28,10 @@ void BM_basic(benchmark::State &state) {
   }
 
   for (auto _ : state) {
-#pragma omp parallel for num_threads(NTHREADS)
-    for (uint t = 0; t < N; t++) {
-      auto v = runTask(data[t]);
-      benchmark::DoNotOptimize(v);
+    uint t;
+#pragma omp parallel for num_threads(NTHREADS) default(none) shared(data) firstprivate(N) private(t)
+    for (t = 0; t < N; t++) {
+      runTask(data[t]);
     }
   }
 }
@@ -44,10 +44,10 @@ void BM_contigs(benchmark::State &state) {
   }
 
   for (auto _ : state) {
-#pragma omp parallel for num_threads(NTHREADS)
-    for (uint t = 0; t < N; t++) {
-      auto v = runTask(data[t]);
-      benchmark::DoNotOptimize(v);
+    uint t;
+#pragma omp parallel for num_threads(NTHREADS) default(none) shared(data) firstprivate(N) private(t)
+    for (t = 0; t < N; t++) {
+      runTask(data[t]);
     }
   }
 
@@ -62,15 +62,15 @@ void BM_veccontigs(benchmark::State &state) {
   auto vec = createContiguousVectorOfData(N, na, nb);
 
   for (auto _ : state) {
-#pragma omp parallel for num_threads(NTHREADS)
-    for (uint t = 0; t < N; t++) {
-      auto v = runTask(vec.data[t]);
-      benchmark::DoNotOptimize(v);
+    uint t;
+#pragma omp parallel for num_threads(NTHREADS) default(none) shared(vec) firstprivate(N) private(t)
+    for (t = 0; t < N; t++) {
+      runTask(vec.data[t]);
     }
   }
 }
 
-const std::vector<long> Ns = {16, 32, 64, 128, 192, 256, 512};
+const std::vector<long> Ns = {32, 64, 128, 256, 512};
 
 void CustomArgs(benchmark::internal::Benchmark *bench) {
   bench->ArgNames({"N", "threads"});
