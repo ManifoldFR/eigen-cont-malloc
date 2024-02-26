@@ -9,14 +9,14 @@ using Eigen::Matrix4d;
 using Eigen::Vector4d;
 
 constexpr int N = 12;
-using Mat = Eigen::Matrix<double, N, N>;
-using Vec = Eigen::Matrix<double, N, 1>;
+using Mat = Eigen::Matrix<double, -1, -1>;
+using Vec = Eigen::Matrix<double, -1, 1>;
 
 double workload() {
-  Vec x;
+  Vec x(N);
   x.setOnes();
   Vec y = x;
-  Mat M;
+  Mat M(N, N);
   M.setOnes();
   double s = 0.;
   const size_t nr = 3000;
