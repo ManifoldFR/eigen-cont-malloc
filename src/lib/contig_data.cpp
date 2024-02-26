@@ -22,7 +22,7 @@ ContDataOwned createContData(long na, long nb, double *&buf,
 ContDataOwned createContData(long na, long nb) {
   constexpr size_t align = DEFAULT_DYN_ALIGN;
   using AMR = AlignedMemRequest;
-  AMR req = AMR::with_type<double>(na * nb, align) &
+  AMR req = AMR::with_type<double>(na * nb, no_false_share_align) &
             AMR::with_type<double>(na, align) &
             AMR::with_type<double>(nb, align);
   size_t bufferSize = req.alloc_req() / sizeof(double);

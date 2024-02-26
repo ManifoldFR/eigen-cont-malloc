@@ -15,7 +15,7 @@ ContDataOwned createContData(long na, long nb, double *&buf,
                              size_t &bufferSize);
 ContDataOwned createContData(long na, long nb);
 
-constexpr auto no_false_share_align = 64;
+constexpr auto no_false_share_align = 128;
 
 struct alignas(64) special_vector {
   std::vector<ContDataOwned> data;
