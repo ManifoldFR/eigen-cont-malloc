@@ -12,11 +12,12 @@ constexpr int N = 12;
 using Mat = Eigen::Matrix<double, N, N>;
 using Vec = Eigen::Matrix<double, N, 1>;
 
-
-double workload() { 
-  Vec x; x.setOnes();
+double workload() {
+  Vec x;
+  x.setOnes();
   Vec y = x;
-  Mat M; M.setOnes();
+  Mat M;
+  M.setOnes();
   double s = 0.;
   const size_t nr = 3000;
   for (size_t i = 0; i < nr; i++) {
@@ -27,17 +28,16 @@ double workload() {
   return s;
 }
 
-const uint nwork = 100;
+const uint nwork = 120;
 
 void serial(benchmark::State &s) {
 
   for (auto _ : s) {
-    for (size_t i = 0 ; i < nwork; i++) {
+    for (size_t i = 0; i < nwork; i++) {
       auto v = workload();
       benchmark::DoNotOptimize(v);
     }
   }
-
 }
 
 void parallel(benchmark::State &s) {
@@ -46,8 +46,8 @@ void parallel(benchmark::State &s) {
 
   for (auto _ : s) {
     size_t i;
-#pragma omp parallel for schedule(static) num_threads(num_threads) private(i)
-    for (i = 0 ; i < nwork; i++) {
+#pragma omp parallel for default(none) private(i) schedule(static)
+    for (i = 0; i < nwork; i++) {
       auto v = workload();
       benchmark::DoNotOptimize(v);
     }
@@ -56,7 +56,8 @@ void parallel(benchmark::State &s) {
 
 void paralleltbb(benchmark::State &s) {
   size_t num_threads = (size_t)s.range(0);
-  tbb::global_control aq(tbb::global_control::max_allowed_parallelism, num_threads);
+  tbb::global_control aq(tbb::global_control::max_allowed_parallelism,
+                         num_threads);
 
   for (auto _ : s) {
     tbb::parallel_for(0u, nwork, [](uint) {
@@ -67,8 +68,18 @@ void paralleltbb(benchmark::State &s) {
 }
 
 BENCHMARK(serial)->Unit(benchmark::kMicrosecond)->UseRealTime();
-BENCHMARK(parallel)->Unit(benchmark::kMicrosecond)->UseRealTime()->Arg(2)->Arg(4)->Arg(6);
-BENCHMARK(paralleltbb)->Unit(benchmark::kMicrosecond)->UseRealTime()->Arg(2)->Arg(4)->Arg(6);
+BENCHMARK(parallel)
+    ->Unit(benchmark::kMicrosecond)
+    ->UseRealTime()
+    ->Arg(2)
+    ->Arg(4)
+    ->Arg(6);
+BENCHMARK(paralleltbb)
+    ->Unit(benchmark::kMicrosecond)
+    ->UseRealTime()
+    ->Arg(2)
+    ->Arg(4)
+    ->Arg(6);
 
 int main(int argc, char **argv) {
   // Eigen::initParallel();
@@ -85,4 +96,3 @@ int main(int argc, char **argv) {
   benchmark::Shutdown();
   return 0;
 }
-
